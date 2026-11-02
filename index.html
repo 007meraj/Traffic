@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5c842">
+  <title>Dhaka Jam Meter 🚦</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#fff8e5;color:#242923;font-family:system-ui,sans-serif}main{max-width:650px;margin:48px auto;padding:20px}.tag{font-weight:800;letter-spacing:.12em;font-size:12px}h1{font-size:clamp(36px,8vw,58px);line-height:1.05;margin:18px 0}header p{line-height:1.7;color:#54594e}.card{margin-top:28px;background:#fff;border:2px solid #242923;border-radius:22px;padding:24px;box-shadow:7px 7px 0 #242923}label{display:block;font-weight:700;margin-bottom:10px}select,button{font:inherit;width:100%;border:2px solid #242923;border-radius:12px;padding:15px}select{background:white}button{background:#ffda57;text-align:left;font-weight:650;cursor:pointer;margin:6px 0;transition:transform .15s}button:hover{transform:translateY(-2px);background:#ffe794}button:focus-visible,select:focus-visible{outline:3px solid #385cdd;outline-offset:3px}h2{font-size:21px;margin-top:26px}.result{margin:17px 0;font-size:14px}.track{height:10px;background:#eee;border-radius:20px;overflow:hidden;margin-top:8px}.fill{height:100%;background:#ed7658}.small{font-size:13px;color:#62685e;line-height:1.6}#message{min-height:50px;line-height:1.6}footer{margin:28px 0;font-size:13px;color:#62685e}a{color:inherit}
+  </style>
+</head>
+<body>
+<main>
+  <header><span class="tag">🚦 DHAKA COMMUTER CLUB</span><h1>Stuck together.<br>Laugh together.</h1><p>ঢাকায় আছেন, নাকি জ্যামে বাসা নিয়েছেন?<br>Tell us how your commute is going. Your patience deserves a vote.</p></header>
+  <section class="card" aria-label="Traffic opinion poll">
+    <label for="route">Where is your patience being tested?</label>
+    <select id="route"><option>Farmgate</option><option>Mirpur</option><option>Mohakhali</option><option>Uttara</option><option>Dhanmondi</option><option>Jatrabari</option></select>
+    <h2>What’s the traffic mood?</h2><div id="choices"></div><p id="message" role="status" aria-live="polite"></p>
+    <h2>Your browser’s votes 📊</h2><div id="results"></div><p id="total" class="small"></p>
+    <p class="small">This is a fun opinion poll, not live traffic information. Votes are saved only in your browser and are not shared with other visitors.</p>
+  </section>
+  <footer>Made for Dhaka’s very patient people. Please vote when you’re safely stopped. 💛</footer>
+</main>
+<script>
+const moods=[{label:'🚗 Moving! Is today a public holiday?',reply:'Enjoy it. Dhaka has given you a rare blessing.'},{label:'🚶 Walking is officially faster',reply:'Your bus has been overtaken by a tea seller. Again.'},{label:'🏠 I live on this bus now',reply:'Congratulations! Your new address is Seat 12, stuck in traffic.'}];
+const key='dhaka-jam-votes-v1',route=document.querySelector('#route'),choices=document.querySelector('#choices'),results=document.querySelector('#results'),message=document.querySelector('#message');
+let votes={};
+try{const saved=JSON.parse(localStorage.getItem(key));if(saved&&typeof saved==='object'&&!Array.isArray(saved))votes=saved;}catch{}
+function routeVotes(){const saved=votes[route.value];return moods.map((_,i)=>Array.isArray(saved)&&Number.isSafeInteger(saved[i])&&saved[i]>=0?saved[i]:0);}
+function render(){const counts=routeVotes(),total=counts.reduce((a,b)=>a+b,0);results.replaceChildren();moods.forEach((mood,i)=>{const percent=total?Math.round(counts[i]/total*100):0,row=document.createElement('div'),label=document.createElement('div'),track=document.createElement('div'),fill=document.createElement('div');row.className='result';label.textContent=`${mood.label} — ${percent}% (${counts[i]})`;track.className='track';track.setAttribute('aria-hidden','true');fill.className='fill';fill.style.width=`${percent}%`;track.append(fill);row.append(label,track);results.append(row);});document.querySelector('#total').textContent=`${total} vote${total===1?'':'s'} for ${route.value} on this browser.`;}
+moods.forEach((mood,i)=>{const button=document.createElement('button');button.type='button';button.textContent=mood.label;button.addEventListener('click',()=>{const counts=routeVotes();counts[i]++;votes[route.value]=counts;let saved=true;try{localStorage.setItem(key,JSON.stringify(votes));}catch{saved=false;}message.textContent=mood.reply+(saved?'':' Vote counted for this session only.');render();});choices.append(button);});
+route.addEventListener('change',()=>{message.textContent='';render();});render();
+</script>
+</body>
+</html>
